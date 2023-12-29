@@ -381,7 +381,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                             correctFromUsers1[i]= correctFromUsers1[i]+Integer.parseInt(tempCorrectFromUsers[i]);
                         }
                         response.type("application/json");
-                        return gson.toJson("Success");
+                        return gson.toJson("Success1");
                     } catch (JsonSyntaxException e) {
                         response.status(400);
                         return new Gson().toJson("Invalid JSON format");
