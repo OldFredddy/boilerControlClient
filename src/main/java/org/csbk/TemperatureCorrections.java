@@ -15,18 +15,21 @@ public class TemperatureCorrections {
     private String[] tAlarmCorrectionFromUsers;
 
     public String[] getTAlarmCorrectionFromUsers() {
-        if (tAlarmCorrectionFromUsers==null){
-            tAlarmCorrectionFromUsers= new String[]{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"};
-        }
+         if (tAlarmCorrectionFromUsers==null){
+                 tAlarmCorrectionFromUsers= new String[]{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"};
+             }
         return tAlarmCorrectionFromUsers;
     }
 
     public void setTAlarmCorrectionFromUsers(String[] tAlarmCorrectionFromUsers) {
-        if (tAlarmCorrectionFromUsers==null){
+
+        if (tAlarmCorrectionFromUsers==null||this.tAlarmCorrectionFromUsers==null){
             this.tAlarmCorrectionFromUsers= new String[]{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"};
         }
         else {
-            this.tAlarmCorrectionFromUsers=tAlarmCorrectionFromUsers;
+            for (int i = 0;i <tAlarmCorrectionFromUsers.length;i++){
+                this.tAlarmCorrectionFromUsers[i]= String.valueOf(Integer.parseInt(this.tAlarmCorrectionFromUsers[i])+Integer.parseInt(tAlarmCorrectionFromUsers[i]));
+            }
         }
     }
 

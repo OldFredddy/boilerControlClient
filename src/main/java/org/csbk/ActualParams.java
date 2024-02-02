@@ -34,7 +34,7 @@ public class ActualParams {
             parseTxtFile();
         }
         if (readDataMode.equals("modbusTCPIP")){
-            modbusRead();  //TODO read поменять на другое название
+            modbusRead();
         }
     }
     // Методы доступа

@@ -13,6 +13,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.util.*;
 import javax.imageio.IIOException;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -257,6 +258,8 @@ public class Controller {
 public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     public  ActualParams actualParamsForRest;
     public ArrayList<Boiler> boilers= new ArrayList<>();
+    public GudimParams gudimParams= new GudimParams();
+    public PumpStation pumpStation = new PumpStation();
     public TemperatureCorrections temperatureCorrections = new TemperatureCorrections();
     @FXML
     void initialize() throws IIOException, TelegramApiException {
@@ -343,7 +346,15 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                 data.setPpodLow(fixedPpodLow);
                 DataIO.saveData(data);
                 temperatureCorrections.setTAlarmCorrectionFromUsers(data.getCorrectForScada());
-                restartRefreshData();
+                restartRefreshData(mode);
+                get("/getgudimparams", (request, response) -> {
+                    response.type("application/json");
+                    return new Gson().toJsonTree(gudimParams);
+                });
+                get("/getpumpstationparams", (request, response) -> {
+                    response.type("application/json");
+                    return new Gson().toJsonTree(pumpStation);
+                });
                 get("/getclientparams", (request, response) -> {
                     response.type("application/json");
                     return new Gson().toJsonTree(boilers);
@@ -380,6 +391,11 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                         for (int i = 0;i <tempCorrectFromUsers.length;i++){
                             correctFromUsers1[i]= correctFromUsers1[i]+Integer.parseInt(tempCorrectFromUsers[i]);
                         }
+                        String[] tempTempCorrectFromUser=new String[correctFromUsers1.length];
+                        for (int i = 0; i < correctFromUsers1.length; i++) {
+                            tempTempCorrectFromUser[i]= Arrays.toString(correctFromUsers1);
+                        }
+                        temperatureCorrections.setTAlarmCorrectionFromUsers(tempTempCorrectFromUser);
                         response.type("application/json");
                         return gson.toJson("Success1");
                     } catch (JsonSyntaxException e) {
@@ -387,6 +403,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                         return new Gson().toJson("Invalid JSON format");
                     }
                 });
+                //мапперы для отправки данных /getgudimparams /getcitypumpparams
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -428,49 +445,65 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     public void setTextField(String s){
         fieldTpod13.setText(s);
     }
-    private void startTimerRefreshDataForRest(){      //TODO restart service
+    private void startTimerRefreshDataForRest(String mode){
         timerRefreshDataForRest=null;
         System.gc();
          timerRefreshDataForRest = new Timer();
         TimerTask refreshDataTask = new TimerTask() {
             @Override
             public void run() {
-                actualParamsForRest = null;
-                System.gc();
-                if (boilers.size()<1){
-                    boilers.clear();
-                    for (int i = 0; i < 14; i++) {
+                if (mode.equals("gudim")){
+                    gudimParams = null;
+                    System.gc();
+                    String currentDir = Paths.get("").toAbsolutePath().toString()+"/gudimparams.txt";
+                    gudimParams=GudimParamsReader.parseTxtFile(currentDir);
+                }
+                if (mode.equals("pumpStation")){
+                    pumpStation = null;
+                    System.gc();
+                    String currentDir = Paths.get("").toAbsolutePath().toString()+"/pumpstationparams.txt";
+                    pumpStation=PumpStationParamsReader.parseTxtFile(currentDir);
+                }
+                if (mode.equals("boilers")){
 
-                        boilers.add(new Boiler());
+                    actualParamsForRest = null;
+                    System.gc();
+                    if (boilers.size()<1){
+                        boilers.clear();
+                        for (int i = 0; i < 14; i++) {
+                            boilers.add(new Boiler());
+                        }
+                    }
+                    try {
+                        String currentDir = Paths.get("").toAbsolutePath().toString()+"/actualparams.txt";
+                        actualParamsForRest = new ActualParams(currentDir,readDataMode, fixedPpodHigh, fixedPpodLow);
+                        if (boilers.size()>0) {
+                            for (int i = 0; i < 14; i++) {
+                                boilers.get(i).setId(i);
+                                boilers.get(i).settPod(actualParamsForRest.getTPod()[i]);
+                                DecimalFormat formatter = new DecimalFormat("#.##");
+                                boilers.get(i).setpPod(formatter.format(Double.parseDouble(actualParamsForRest.getPVx()[i])).replace(',', '.'));
+                                boilers.get(i).settUlica(actualParamsForRest.getTStreet()[i]);
+                                boilers.get(i).settPlan(actualParamsForRest.gettPlan()[i]);
+                                boilers.get(i).settAlarm(actualParamsForRest.getAlarm(fixedTpod, temperatureCorrections.getCorrectionTpod(), i, correctFromUsers1));
+                                boilers.get(i).setOk(0);
+                                boilers.get(i).setImageResId(i);
+                                boilers.get(i).setpPodHighFixed(String.valueOf(fixedPpodHigh[i]));
+                                boilers.get(i).setpPodLowFixed(String.valueOf(fixedPpodLow[i]));
+                                boilers.get(i).settPodFixed(String.valueOf(fixedTpod[i]));
+                                boilers.get(i).setVersion(1);
+                            }
+                        }
+                    } catch (IOException | NullPointerException | NumberFormatException e) {
+                        e.printStackTrace();
                     }
                 }
-                try {
-                    String currentDir = Paths.get("").toAbsolutePath().toString()+"/actualparams.txt";
-                    actualParamsForRest = new ActualParams(currentDir,readDataMode, fixedPpodHigh, fixedPpodLow);
-                   if (boilers.size()>0) {
-                       for (int i = 0; i < 14; i++) {
-                           boilers.get(i).setId(i);
-                           boilers.get(i).settPod(actualParamsForRest.getTPod()[i]);
-                           boilers.get(i).setpPod(actualParamsForRest.getPVx()[i]);
-                           boilers.get(i).settUlica(actualParamsForRest.getTStreet()[i]);
-                           boilers.get(i).settPlan(actualParamsForRest.gettPlan()[i]);
-                           boilers.get(i).settAlarm(actualParamsForRest.getAlarm(fixedTpod, temperatureCorrections.getCorrectionTpod(), i, correctFromUsers1));
-                           boilers.get(i).setOk(0);//TODO возможна ошибка из-за гонки IO //0-waiting 1 - good 2 - error
-                           boilers.get(i).setImageResId(i);
-                           boilers.get(i).setpPodHighFixed(String.valueOf(fixedPpodHigh[i]));
-                           boilers.get(i).setpPodLowFixed(String.valueOf(fixedPpodLow[i]));
-                           boilers.get(i).settPodFixed(String.valueOf(fixedTpod[i]));
-                           boilers.get(i).setVersion(1);
-                       }
-                   }
-                } catch (IOException | NullPointerException | NumberFormatException e) {
-                    e.printStackTrace();
-                }
+
             }
         };
         timerRefreshDataForRest.scheduleAtFixedRate(refreshDataTask, 3  * 1000, 2  * 1000);
     }
-    private void restartRefreshData(){
+    private void restartRefreshData(String mode){
         timerRestart = new Timer();
         TimerTask restartRefreshDataTask = new TimerTask() {
             @Override
@@ -478,7 +511,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                if (timerRefreshDataForRest!=null){
                 timerRefreshDataForRest.cancel();
                }
-              startTimerRefreshDataForRest();
+              startTimerRefreshDataForRest(mode);
             }
         };
         timerRestart.scheduleAtFixedRate(restartRefreshDataTask,   1000, 5 * 60 * 1000);
