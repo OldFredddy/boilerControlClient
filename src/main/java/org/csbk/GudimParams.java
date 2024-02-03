@@ -11,9 +11,17 @@ public class GudimParams {
     private String reserv1Lvl;
     private String reserv2Lvl;
     private String inTownTpod;
+    private String tUlica;
     private Integer id;
     private long version;
     private long lastUpdated;
+    public String gettUlica() {
+        return tUlica;
+    }
+
+    public void settUlica(String tUlica) {
+        this.tUlica = tUlica;
+    }
     public String getWell1Tpod() {
         return well1Tpod;
     }
@@ -99,6 +107,9 @@ public class GudimParams {
             this.isOk = isOk;
             this.version = newVersion;
         }
+    }
+    public int getIsOk() {
+        return isOk;
     }
 }
 
