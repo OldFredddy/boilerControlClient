@@ -11,17 +11,22 @@ public class GudimParams {
     private String reserv1Lvl;
     private String reserv2Lvl;
     private String inTownTpod;
-    private String tUlica;
+    private String inTownFlow;
+
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    private String street;
     private Integer id;
     private long version;
     private long lastUpdated;
-    public String gettUlica() {
-        return tUlica;
-    }
 
-    public void settUlica(String tUlica) {
-        this.tUlica = tUlica;
-    }
     public String getWell1Tpod() {
         return well1Tpod;
     }
@@ -110,6 +115,13 @@ public class GudimParams {
     }
     public int getIsOk() {
         return isOk;
+    }
+    public String getInTownFlow() {
+        return inTownFlow;
+    }
+
+    public void setInTownFlow(String inTownFlow) {
+        this.inTownFlow = inTownFlow;
     }
 }
 

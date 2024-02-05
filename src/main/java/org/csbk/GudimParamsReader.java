@@ -29,7 +29,8 @@ public class GudimParamsReader {
             gudimParams.setReserv2Tpod("99");
             gudimParams.setWell1Tpod("99");
             gudimParams.setWell2Tpod("99");
-            gudimParams.settUlica("5");
+            gudimParams.setStreet("5");
+            gudimParams.setInTownFlow("20");
             e.printStackTrace();
         }
         for (int i = 0; i < tempParams.size(); i++) {
@@ -43,7 +44,8 @@ public class GudimParamsReader {
             gudimParams.setReserv2Tpod(tempParams.get(4));
             gudimParams.setWell1Tpod(tempParams.get(5));
             gudimParams.setWell2Tpod(tempParams.get(6));
-            gudimParams.settUlica(tempParams.get(7));
+            gudimParams.setStreet(tempParams.get(7));
+            gudimParams.setInTownFlow(tempParams.get(8));
         }
         return gudimParams;
     }

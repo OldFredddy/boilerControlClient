@@ -557,10 +557,8 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
         String json = gson.toJson(gudimParams);
         RequestBody body = RequestBody.create(JSON, json);
-
-        // Создание запроса
         Request request = new Request.Builder()
-                .url("http://95.142.45.133:23873/getgudimparams")
+                .url("http://95.142.45.133:23873/setGudimParams")
                 .post(body)
                 .build();
 
