@@ -7,10 +7,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import okhttp3.*;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
-
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
@@ -268,6 +268,8 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     public TemperatureCorrections temperatureCorrections = new TemperatureCorrections();
     ToggleGroup pickedModeToggle = new ToggleGroup();
     String mode="";
+    private final OkHttpClient client = new OkHttpClient();
+    private final Gson gson = new Gson();
     @FXML
     void initialize() {
         try {
@@ -433,6 +435,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                     System.gc();
                     String currentDir = Paths.get("").toAbsolutePath().toString()+"/gudimparams.txt";
                     gudimParams=GudimParamsReader.parseTxtFile(currentDir);
+                    sendGudimParams(gudimParams);
                 }
                 if (mode.equals("pumpStation")){
                     pumpStation = null;
@@ -547,5 +550,27 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
         fixedTpod[11]=Integer.parseInt(fieldTpod12.getText());    fixedPpodHigh[11]=Float.parseFloat(fieldPpod12High.getText());      fixedPpodLow[11]=Float.parseFloat(fieldPpod12Low.getText());
         fixedTpod[12]=Integer.parseInt(fieldTpod13.getText());    fixedPpodHigh[12]=Float.parseFloat(fieldPpod13High.getText());      fixedPpodLow[12]=Float.parseFloat(fieldPpod13Low.getText());
         fixedTpod[13]=Integer.parseInt(fieldTpod14.getText());    fixedPpodHigh[13]=Float.parseFloat(fieldPpod14High.getText());      fixedPpodLow[13]=Float.parseFloat(fieldPpod14Low.getText());
+    }
+    private void sendGudimParams(GudimParams gudimParams) {
+        // Сериализация gudimParams в JSON
+        // Создание тела запроса
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+        String json = gson.toJson(gudimParams);
+        RequestBody body = RequestBody.create(JSON, json);
+
+        // Создание запроса
+        Request request = new Request.Builder()
+                .url("http://95.142.45.133:23873/getgudimparams")
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+            // Обработка ответа от сервера
+            System.out.println(response.body().string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
