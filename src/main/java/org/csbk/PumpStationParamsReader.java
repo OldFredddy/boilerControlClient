@@ -36,6 +36,7 @@ public class PumpStationParamsReader {
             pumpStation.setReserv1Tpod(tempParams.get(3));
             pumpStation.setReserv2Tpod(tempParams.get(4));
             pumpStation.setForCityFlow(tempParams.get(5));
+            pumpStation.setStreet(tempParams.get(6));
         }
         return pumpStation;
     }

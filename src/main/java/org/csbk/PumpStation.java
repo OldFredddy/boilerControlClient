@@ -13,8 +13,52 @@ public class PumpStation {
     private String reserv2Lvl;
     private String forCityFlow;
     private Integer id;
+    private String magicIndicator1;
+    private String magicIndicator2;
+    private String magicIndicator3;
+    private String magicIndicator4;
+    private String street;
     private long version;
     private long lastUpdated;
+
+    public String getStreet() {
+        return street;
+    }
+    public void setStreet(String street) {
+        this.street = street;
+    }
+    public String getMagicIndicator1() {
+        return magicIndicator1;
+    }
+
+    public void setMagicIndicator1(String magicIndicator1) {
+        this.magicIndicator1 = magicIndicator1;
+    }
+
+    public String getMagicIndicator2() {
+        return magicIndicator2;
+    }
+
+    public void setMagicIndicator2(String magicIndicator2) {
+        this.magicIndicator2 = magicIndicator2;
+    }
+
+    public String getMagicIndicator3() {
+        return magicIndicator3;
+    }
+
+    public void setMagicIndicator3(String magicIndicator3) {
+        this.magicIndicator3 = magicIndicator3;
+    }
+
+    public String getMagicIndicator4() {
+        return magicIndicator4;
+    }
+
+    public void setMagicIndicator4(String magicIndicator4) {
+        this.magicIndicator4 = magicIndicator4;
+    }
+
     public void setIsOk(int isOk, long newVersion) {
         if (newVersion > this.version) {
             this.isOk = isOk;

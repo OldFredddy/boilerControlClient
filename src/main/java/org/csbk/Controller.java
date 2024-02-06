@@ -442,6 +442,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                     System.gc();
                     String currentDir = Paths.get("").toAbsolutePath().toString()+"/pumpstationparams.txt";
                     pumpStation=PumpStationParamsReader.parseTxtFile(currentDir);
+                    sendPumpStationParams(pumpStation);
                 }
                 if (mode.equals("boilers")){
 
@@ -566,6 +567,21 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
             // Обработка ответа от сервера
+            System.out.println(response.body().string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void sendPumpStationParams(PumpStation pumpStation) {
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+        String json = gson.toJson(pumpStation);
+        RequestBody body = RequestBody.create(JSON, json);
+        Request request = new Request.Builder()
+                .url("http://95.142.45.133:23873/setPumpStationParams")
+                .post(body)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
             System.out.println(response.body().string());
         } catch (IOException e) {
             e.printStackTrace();
