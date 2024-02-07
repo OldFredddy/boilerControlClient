@@ -24,6 +24,10 @@ public class PumpStationParamsReader {
             pumpStation.setReserv1Tpod("99");
             pumpStation.setReserv2Tpod("99");
             pumpStation.setForCityFlow("99");
+            pumpStation.setMagicIndicator1("5");
+            pumpStation.setMagicIndicator2("10");
+            pumpStation.setMagicIndicator3("15");
+            pumpStation.setMagicIndicator4("20");
             e.printStackTrace();
         }
         for (int i = 0; i < tempParams.size(); i++) {
@@ -38,6 +42,10 @@ public class PumpStationParamsReader {
             pumpStation.setForCityFlow(tempParams.get(5));
             pumpStation.setStreet(tempParams.get(6));
         }
+        pumpStation.setMagicIndicator1("5");
+        pumpStation.setMagicIndicator2("10");
+        pumpStation.setMagicIndicator3("15");
+        pumpStation.setMagicIndicator4("20");
         return pumpStation;
     }
 }
