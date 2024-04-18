@@ -5,17 +5,23 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import net.sourceforge.tess4j.TesseractException;
 import okhttp3.*;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+
+import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.*;
 import javax.imageio.IIOException;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static spark.Spark.get;
@@ -29,6 +35,8 @@ public class Controller {
     private RadioButton pickModeGudim;
     @FXML
     private RadioButton pickModePumpStation;
+    @FXML
+    private RadioButton pickModeMagicIndicators;
     @FXML
     private Button callButton;
     @FXML
@@ -250,6 +258,7 @@ public class Controller {
     @FXML
     private Button stopButtonGudim;
 
+
     @FXML
     private VBox vbMenu;
     private int[] fixedTpod ={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
@@ -276,6 +285,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             pickModeBoilers.setToggleGroup(pickedModeToggle);
             pickModeGudim.setToggleGroup(pickedModeToggle);
             pickModePumpStation.setToggleGroup(pickedModeToggle);
+            pickModeMagicIndicators.setToggleGroup(pickedModeToggle);
             pickedModeToggle.selectToggle(pickModeBoilers);
             pickedModeToggle.selectedToggleProperty().addListener((observable, oldVal, newVal) -> {
                 if (newVal != null) {
@@ -286,6 +296,8 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                         mode = "boilers";
                     } else if (selectedRadioButton == pickModePumpStation) {
                         mode = "pumpStation";
+                    } else if (selectedRadioButton == pickModeMagicIndicators) {
+                        mode = "pumpStationIndicators";
                     } else {
                         mode = "boilers";
                     }
@@ -419,11 +431,12 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             fixedParamsGudim[11]=Integer.parseInt(fieldTpodSk2GLow.getText());
 
         });
-        startButton.fire();
+        //startButton.fire();
     }
     public void setTextField(String s){
         fieldTpod13.setText(s);
     }
+    private int counter=1;
     private void startTimerRefreshDataForRest(String mode){
         timerRefreshDataForRest=null;
         System.gc();
@@ -444,6 +457,25 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                     String currentDir = Paths.get("").toAbsolutePath().toString()+"/pumpstationparams.txt";
                     pumpStation=PumpStationParamsReader.parseTxtFile(currentDir);
                     sendPumpStationParams(pumpStation);
+                }
+                if (mode.equals("pumpStationIndicators")){
+                    counter++;
+                    if (counter>10000) {
+                        counter = 1;
+                    }
+                    if (counter%100==0) {
+                        System.gc();
+                        TextExtractor textExtractor = new TextExtractor();
+                        try {
+                            sendMagicIndicators(textExtractor.extractTextFromScreenshot());
+                        } catch (AWTException e) {
+                            throw new RuntimeException(e);
+                        } catch (TesseractException e) {
+                            throw new RuntimeException(e);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                 }
                 if (mode.equals("boilers")){
 
@@ -579,6 +611,21 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
                 .url("http://95.142.45.133:23873/setPumpStationParams")
+                .post(body)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            System.out.println(response.body().string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void sendMagicIndicators(List<String> indicators) {
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+        String json = gson.toJson(indicators);
+        RequestBody body = RequestBody.create(JSON, json);
+        Request request = new Request.Builder()
+                .url("http://95.142.45.133:23873/setMagicIndicators")
                 .post(body)
                 .build();
         try (Response response = client.newCall(request).execute()) {

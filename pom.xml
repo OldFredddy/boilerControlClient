@@ -6,7 +6,7 @@
 
     <groupId>org.csbk</groupId>
     <artifactId>BoilerControlClient</artifactId>
-    <version>2.1</version>
+    <version>3.0</version>
 
     <properties>
         <maven.compiler.source>19</maven.compiler.source>
@@ -104,6 +104,12 @@
         <artifactId>gson</artifactId>
         <version>2.10.1</version>
     </dependency>
+    <dependency>
+        <groupId>net.sourceforge.tess4j</groupId>
+        <artifactId>tess4j</artifactId>
+        <version>5.11.0</version>
+    </dependency>
+
 </dependencies>
     <repositories>
         <repository>

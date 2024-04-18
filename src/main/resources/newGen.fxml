@@ -743,6 +743,11 @@
                   <Font size="15.0" />
                </font>
             </RadioButton>
+            <RadioButton fx:id="pickModeMagicIndicators" layoutX="669.0" layoutY="617.0" mnemonicParsing="false" text="Индикаторы на насосной" textFill="WHITE">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </RadioButton>
   </children>
 </AnchorPane>
   </children>
