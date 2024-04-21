@@ -460,10 +460,8 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                 }
                 if (mode.equals("pumpStationIndicators")){
                     counter++;
-                    if (counter>10000) {
+                    if (counter >= 3) {  // Поскольку каждый вызов происходит каждые 2 секунды, 3 вызова составляют 6 секунд
                         counter = 1;
-                    }
-                    if (counter%100==0) {
                         System.gc();
                         TextExtractor textExtractor = new TextExtractor();
                         try {

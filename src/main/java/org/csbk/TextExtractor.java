@@ -15,49 +15,39 @@ import java.util.regex.Pattern;
 
 public class TextExtractor {
     private final ITesseract tesseract;
-    private final int x, y, w, h;
 
     public TextExtractor() {
         this.tesseract = new Tesseract();
         String tessdataPath = "./tessdata";
         this.tesseract.setDatapath(tessdataPath);
-        // Координаты и размеры заранее определены
-        this.x = 70;
-        this.y = 100;
-        this.w = 130;
-        this.h = 240;
     }
 
     public List<String> extractTextFromScreenshot() throws AWTException, TesseractException, IOException {
-        List<String> temperatures = new ArrayList<>();
+        List<String> results = new ArrayList<>();
         Robot robot = new Robot();
         Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
         BufferedImage screenFullImage = robot.createScreenCapture(screenRect);
-       // String fileName = "image.png";
-       // File imph = new File(fileName);
-        //BufferedImage screenFullImage = ImageIO.read(imph);
-        BufferedImage[] images = {
-                screenFullImage.getSubimage( x+w/2, y, w/2, h/4), // T1
-                screenFullImage.getSubimage(x+w/2,y + h/2, w/2,h/4), // T2
-                screenFullImage.getSubimage( x+w/2, y + h/4, w/2, h/4), // T3
-                screenFullImage.getSubimage( x+w/2,y + 3*h/4, w/2, h/4) // T4
+
+        // Новые координаты и размеры для обрезки
+        Rectangle[] regions = {
+                new Rectangle(145, 140, 24, 20),
+                new Rectangle(145, 245, 24, 20),
+                new Rectangle(145, 193, 24, 20),
+                new Rectangle(145, 295, 24, 20)
         };
 
-       // Pattern pattern = Pattern.compile("\\d+\\.\\d+"); // Шаблон для извлечения числовых значений
+        int index = 1;
+        for (Rectangle rect : regions) {
+            BufferedImage croppedImage = screenFullImage.getSubimage(rect.x, rect.y, rect.width, rect.height);
+            File outputFile = new File("cropped_" + index + ".png");
+            ImageIO.write(croppedImage, "png", outputFile);
+            System.out.println("Обрезанное изображение сохранено как " + outputFile.getName());
 
-        for (BufferedImage image : images) {
-            String ocrResult = tesseract.doOCR(image).trim();
-           // Matcher matcher = pattern.matcher(ocrResult);
-            //if (matcher.find()) {
-                temperatures.add(ocrResult); // Добавление только числового значения
-          //  } else {
-               // temperatures.add("***"); // В случае ошибки добавляем индикатор
-           // }
+            String ocrResult = tesseract.doOCR(croppedImage).trim();
+            results.add(ocrResult);
+            index++;
         }
 
-        // Возможно, вы захотите сохранить скриншот на диск
-        // ImageIO.write(screenFullImage, "png", new File("screenshot.png"));
-
-        return temperatures;
+        return results;
     }
 }
