@@ -19,6 +19,8 @@ import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import javax.imageio.IIOException;
 import java.util.List;
@@ -460,7 +462,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                 }
                 if (mode.equals("pumpStationIndicators")){
                     counter++;
-                    if (counter >= 3) {  // Поскольку каждый вызов происходит каждые 2 секунды, 3 вызова составляют 6 секунд
+                    if (counter >= 4) {  // Поскольку каждый вызов происходит каждые 2 секунды, 3 вызова составляют 6 секунд
                         counter = 1;
                         System.gc();
                         TextExtractor textExtractor = new TextExtractor();
@@ -628,7 +630,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                 .build();
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-            System.out.println(response.body().string());
+            System.out.println(response.body().string() + " " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
         } catch (IOException e) {
             e.printStackTrace();
         }

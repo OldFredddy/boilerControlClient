@@ -12,10 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 public class TextExtractor {
     private final ITesseract tesseract;
-
+    private static final String DB_URL = "jdbc:mariadb://localhost:3306/gigro";
+    private static final String USER = "root";
+    private static final String PASS = "12345678";
     public TextExtractor() {
         this.tesseract = new Tesseract();
         String tessdataPath = "./tessdata";
@@ -30,10 +34,10 @@ public class TextExtractor {
 
         // Новые координаты и размеры для обрезки
         Rectangle[] regions = {
-                new Rectangle(145, 140, 24, 20),
-                new Rectangle(145, 245, 24, 20),
-                new Rectangle(145, 193, 24, 20),
-                new Rectangle(145, 295, 24, 20)
+                new Rectangle(255, 175, 28, 24),            //вырезаются 4 картинки с датчиком
+                new Rectangle(255, 330, 28, 24),
+                new Rectangle(255, 255, 28, 24),
+                new Rectangle(255, 410, 28, 24)
         };
 
         int index = 1;
@@ -41,13 +45,41 @@ public class TextExtractor {
             BufferedImage croppedImage = screenFullImage.getSubimage(rect.x, rect.y, rect.width, rect.height);
             File outputFile = new File("cropped_" + index + ".png");
             ImageIO.write(croppedImage, "png", outputFile);
-            System.out.println("Обрезанное изображение сохранено как " + outputFile.getName());
-
-            String ocrResult = tesseract.doOCR(croppedImage).trim();
+            String ocrResult = tesseract.doOCR(croppedImage).trim();           //распознаются
             results.add(ocrResult);
             index++;
         }
 
         return results;
     }
+    public List<String> extractLastValuesFromDB() {
+        List<String> results = new ArrayList<>();
+        String sqlQuery = "SELECT lcv.objectID, lcv.dtWrite, lcv.newValue " +
+                "FROM logchannelvalues lcv " +
+                "INNER JOIN (" +
+                "    SELECT objectID, MAX(dtWrite) AS LastDtWrite " +
+                "    FROM logchannelvalues " +
+                "    WHERE objectID IN (7, 9, 10, 11) " +
+                "    GROUP BY objectID" +
+                ") AS subquery " +
+                "ON lcv.objectID = subquery.objectID AND lcv.dtWrite = subquery.LastDtWrite";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+             PreparedStatement pstmt = conn.prepareStatement(sqlQuery)) {
+
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                int newValue = rs.getInt("newValue");
+                results.add(String.valueOf(newValue));
+                System.out.println("ObjectID: " + rs.getInt("objectID") + ", dtWrite: " + rs.getTimestamp("dtWrite") + ", newValue: " + newValue);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return results;
+    }
+
+
 }
