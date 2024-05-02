@@ -41,11 +41,12 @@ public class PumpStationParamsReader {
             pumpStation.setReserv2Tpod(tempParams.get(4));
             pumpStation.setForCityFlow(tempParams.get(5));
             pumpStation.setStreet(tempParams.get(6));
+            pumpStation.setMagicIndicator1(tempParams.get(7));
+            pumpStation.setMagicIndicator2(tempParams.get(8));
+            pumpStation.setMagicIndicator3(tempParams.get(9));
+            pumpStation.setMagicIndicator4(tempParams.get(10));
         }
-        pumpStation.setMagicIndicator1("5");
-        pumpStation.setMagicIndicator2("10");
-        pumpStation.setMagicIndicator3("15");
-        pumpStation.setMagicIndicator4("20");
+
         return pumpStation;
     }
 }
