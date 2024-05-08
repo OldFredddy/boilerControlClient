@@ -456,9 +456,17 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                 if (mode.equals("pumpStation")){
                     pumpStation = null;
                     System.gc();
-                    String currentDir = Paths.get("").toAbsolutePath().toString()+"/pumpstationparams.txt";
-                    pumpStation=PumpStationParamsReader.parseTxtFile(currentDir);
+                    String currentDir = Paths.get("").toAbsolutePath().toString() + "/pumpstationparams.txt";
+                    pumpStation = PumpStationParamsReader.parseTxtFile(currentDir);
                     sendPumpStationParams(pumpStation);
+                    List<String> magicIndicators = new ArrayList<>();
+                    magicIndicators.add(pumpStation.getMagicIndicator1());
+                    magicIndicators.add(pumpStation.getMagicIndicator2());
+                    magicIndicators.add(pumpStation.getMagicIndicator3());
+                    magicIndicators.add(pumpStation.getMagicIndicator4());
+                    sendMagicIndicators(magicIndicators);
+                    magicIndicators = null;
+                    System.gc();
                 }
                 if (mode.equals("pumpStationIndicators")){
                     counter++;
