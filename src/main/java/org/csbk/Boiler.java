@@ -4,7 +4,7 @@ package org.csbk;
 
 
 public class Boiler {
-    private int isOk;
+    private int isOk;  //0-waiting 1 - good 2 - error
     private String tPod;
     private String pPod;
     private String tUlica;

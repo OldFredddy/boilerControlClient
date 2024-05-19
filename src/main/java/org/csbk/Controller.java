@@ -1,6 +1,7 @@
 package org.csbk;
 
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import javafx.fxml.FXML;
@@ -17,6 +18,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.awt.*;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.time.LocalTime;
@@ -245,8 +247,7 @@ public class Controller {
     @FXML
     private Button startButton;
 
-    @FXML
-    private Button startButtonGudim;
+
 
     @FXML
     private Button stopButton;
@@ -257,12 +258,24 @@ public class Controller {
     @FXML
     private CheckBox scadaImportCheck;
 
+
+
     @FXML
-    private Button stopButtonGudim;
-
-
+    private Button stopSoundButton;
     @FXML
     private VBox vbMenu;
+    @FXML
+    private RadioButton pickModeVOS;
+    @FXML
+    private TextField fieldTempEngineGasStation;
+
+    @FXML
+    private TextField fieldTempGeneratorGasStation;
+
+    @FXML
+    private TextField fieldTempRadiatorGasStation;
+    @FXML
+    private RadioButton pickModeGES;
     private int[] fixedTpod ={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
     private float[] fixedParamsGudim ={-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
     private float[] fixedPpodHigh ={-1f,-1f,-1f,-1f,-1f,-1f,-1f,-1f,-1f,-1f,-1f,-1f,-1f,-1f};
@@ -271,11 +284,13 @@ public class Controller {
     private String readDataMode;
     Timer timerRefreshDataForRest;
     Timer timerRestart;
+    private SoundPlayer soundPlayer = new SoundPlayer();
 public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     public  ActualParams actualParamsForRest;
     public ArrayList<Boiler> boilers= new ArrayList<>();
     public GudimParams gudimParams= new GudimParams();
     public PumpStation pumpStation = new PumpStation();
+    public GasEngineStation gasEngineStation = new GasEngineStation();
     public TemperatureCorrections temperatureCorrections = new TemperatureCorrections();
     ToggleGroup pickedModeToggle = new ToggleGroup();
     String mode="";
@@ -288,6 +303,8 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             pickModeGudim.setToggleGroup(pickedModeToggle);
             pickModePumpStation.setToggleGroup(pickedModeToggle);
             pickModeMagicIndicators.setToggleGroup(pickedModeToggle);
+            pickModeVOS.setToggleGroup(pickedModeToggle);
+            pickModeGES.setToggleGroup(pickedModeToggle);
             pickedModeToggle.selectToggle(pickModeBoilers);
             pickedModeToggle.selectedToggleProperty().addListener((observable, oldVal, newVal) -> {
                 if (newVal != null) {
@@ -300,6 +317,10 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                         mode = "pumpStation";
                     } else if (selectedRadioButton == pickModeMagicIndicators) {
                         mode = "pumpStationIndicators";
+                    }  else if (selectedRadioButton == pickModeVOS) {
+                        mode = "wasteWater";
+                    } else if (selectedRadioButton == pickModeGES) {
+                        mode = "gasEngineStation";
                     } else {
                         mode = "boilers";
                     }
@@ -401,38 +422,41 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             }
 
         });
+        stopSoundButton.setOnAction(e->{
+            soundPlayer.stopSoundTemporarily();
+        });
        stopButton.setOnAction(e->{
 
        });
 
-        startButtonGudim.setOnAction(event ->{
-            startButtonGudim.setDisable(true);
-            if (fieldGoGHigh.getText().equals("")){ fieldGoGHigh.setText("-1");}             if (fieldGoGHigh.getText().equals("")){ fieldGoGHigh.setText("-1");}
-            if (fieldGoGLow.getText().equals("")){ fieldGoGLow.setText("-1");}               if (fieldGoGLow.getText().equals("")){ fieldGoGLow.setText("-1");}
-            if (fieldPpodSk1GHigh.getText().equals("")){ fieldPpodSk1GHigh.setText("-1");}   if (fieldPpodSk1GHigh.getText().equals("")){ fieldPpodSk1GHigh.setText("-1");}
-            if (fieldPpodSk1GLow.getText().equals("")){ fieldPpodSk1GLow.setText("-1");}     if (fieldPpodSk1GLow.getText().equals("")){ fieldPpodSk1GLow.setText("-1");}
-            if (fieldPpodSk2GHigh.getText().equals("")){ fieldPpodSk2GHigh.setText("-1");}   if (fieldPpodSk2GHigh.getText().equals("")){ fieldPpodSk2GHigh.setText("-1");}
-            if (fieldPpodSk2GLow.getText().equals("")){ fieldPpodSk2GLow.setText("-1");}     if (fieldPpodSk2GLow.getText().equals("")){ fieldPpodSk2GLow.setText("-1");}
-            if (fieldTpodGorGHigh.getText().equals("")){ fieldTpodGorGHigh.setText("-1");}   if (fieldTpodGorGHigh.getText().equals("")){ fieldTpodGorGHigh.setText("-1");}
-            if (fieldTpodGorGLow.getText().equals("")){ fieldTpodGorGLow.setText("-1");}     if (fieldTpodGorGLow.getText().equals("")){ fieldTpodGorGLow.setText("-1");}
-            if (fieldTpodSk1GHigh.getText().equals("")){ fieldTpodSk1GHigh.setText("-1");}   if (fieldTpodSk1GHigh.getText().equals("")){ fieldTpodSk1GHigh.setText("-1");}
-            if (fieldTpodSk1GLow.getText().equals("")){ fieldTpodSk1GLow.setText("-1");}     if (fieldTpodSk1GLow.getText().equals("")){ fieldTpodSk1GLow.setText("-1");}
-            if (fieldTpodSk2GHigh.getText().equals("")){ fieldTpodSk2GHigh.setText("-1");}   if (fieldTpodSk2GHigh.getText().equals("")){ fieldTpodSk2GHigh.setText("-1");}
-            if (fieldTpodSk2GLow.getText().equals("")){ fieldTpodSk2GLow.setText("-1");}     if (fieldTpodSk2GLow.getText().equals("")){ fieldTpodSk2GLow.setText("-1");}
-            fixedParamsGudim[0]=Integer.parseInt(fieldGoGHigh.getText());
-            fixedParamsGudim[1]=Integer.parseInt(fieldGoGLow.getText());
-            fixedParamsGudim[2]=Integer.parseInt(fieldPpodSk1GHigh.getText());
-            fixedParamsGudim[3]=Integer.parseInt(fieldPpodSk1GLow.getText());
-            fixedParamsGudim[4]=Integer.parseInt(fieldPpodSk2GHigh.getText());
-            fixedParamsGudim[5]=Integer.parseInt(fieldPpodSk2GLow.getText());
-            fixedParamsGudim[6]=Integer.parseInt(fieldTpodGorGHigh.getText());
-            fixedParamsGudim[7]=Integer.parseInt(fieldTpodGorGLow.getText());
-            fixedParamsGudim[8]=Integer.parseInt(fieldTpodSk1GHigh.getText());
-            fixedParamsGudim[9]=Integer.parseInt(fieldTpodSk1GLow.getText());
-            fixedParamsGudim[10]=Integer.parseInt(fieldTpodSk2GHigh.getText());
-            fixedParamsGudim[11]=Integer.parseInt(fieldTpodSk2GLow.getText());
-
-        });
+      //  startButtonGudim.setOnAction(event ->{
+      //      startButtonGudim.setDisable(true);
+      //      if (fieldGoGHigh.getText().equals("")){ fieldGoGHigh.setText("-1");}             if (fieldGoGHigh.getText().equals("")){ fieldGoGHigh.setText("-1");}
+      //      if (fieldGoGLow.getText().equals("")){ fieldGoGLow.setText("-1");}               if (fieldGoGLow.getText().equals("")){ fieldGoGLow.setText("-1");}
+      //      if (fieldPpodSk1GHigh.getText().equals("")){ fieldPpodSk1GHigh.setText("-1");}   if (fieldPpodSk1GHigh.getText().equals("")){ fieldPpodSk1GHigh.setText("-1");}
+      //      if (fieldPpodSk1GLow.getText().equals("")){ fieldPpodSk1GLow.setText("-1");}     if (fieldPpodSk1GLow.getText().equals("")){ fieldPpodSk1GLow.setText("-1");}
+      //      if (fieldPpodSk2GHigh.getText().equals("")){ fieldPpodSk2GHigh.setText("-1");}   if (fieldPpodSk2GHigh.getText().equals("")){ fieldPpodSk2GHigh.setText("-1");}
+      //      if (fieldPpodSk2GLow.getText().equals("")){ fieldPpodSk2GLow.setText("-1");}     if (fieldPpodSk2GLow.getText().equals("")){ fieldPpodSk2GLow.setText("-1");}
+      //      if (fieldTpodGorGHigh.getText().equals("")){ fieldTpodGorGHigh.setText("-1");}   if (fieldTpodGorGHigh.getText().equals("")){ fieldTpodGorGHigh.setText("-1");}
+      //      if (fieldTpodGorGLow.getText().equals("")){ fieldTpodGorGLow.setText("-1");}     if (fieldTpodGorGLow.getText().equals("")){ fieldTpodGorGLow.setText("-1");}
+      //      if (fieldTpodSk1GHigh.getText().equals("")){ fieldTpodSk1GHigh.setText("-1");}   if (fieldTpodSk1GHigh.getText().equals("")){ fieldTpodSk1GHigh.setText("-1");}
+      //      if (fieldTpodSk1GLow.getText().equals("")){ fieldTpodSk1GLow.setText("-1");}     if (fieldTpodSk1GLow.getText().equals("")){ fieldTpodSk1GLow.setText("-1");}
+      //      if (fieldTpodSk2GHigh.getText().equals("")){ fieldTpodSk2GHigh.setText("-1");}   if (fieldTpodSk2GHigh.getText().equals("")){ fieldTpodSk2GHigh.setText("-1");}
+      //      if (fieldTpodSk2GLow.getText().equals("")){ fieldTpodSk2GLow.setText("-1");}     if (fieldTpodSk2GLow.getText().equals("")){ fieldTpodSk2GLow.setText("-1");}
+      //      fixedParamsGudim[0]=Integer.parseInt(fieldGoGHigh.getText());
+      //      fixedParamsGudim[1]=Integer.parseInt(fieldGoGLow.getText());
+      //      fixedParamsGudim[2]=Integer.parseInt(fieldPpodSk1GHigh.getText());
+      //      fixedParamsGudim[3]=Integer.parseInt(fieldPpodSk1GLow.getText());
+      //      fixedParamsGudim[4]=Integer.parseInt(fieldPpodSk2GHigh.getText());
+      //      fixedParamsGudim[5]=Integer.parseInt(fieldPpodSk2GLow.getText());
+      //      fixedParamsGudim[6]=Integer.parseInt(fieldTpodGorGHigh.getText());
+      //      fixedParamsGudim[7]=Integer.parseInt(fieldTpodGorGLow.getText());
+      //      fixedParamsGudim[8]=Integer.parseInt(fieldTpodSk1GHigh.getText());
+      //      fixedParamsGudim[9]=Integer.parseInt(fieldTpodSk1GLow.getText());
+      //      fixedParamsGudim[10]=Integer.parseInt(fieldTpodSk2GHigh.getText());
+      //      fixedParamsGudim[11]=Integer.parseInt(fieldTpodSk2GLow.getText());
+//
+      //  });
         //startButton.fire();
     }
     public void setTextField(String s){
@@ -485,11 +509,32 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                         }
                     }
                 }
+                if (mode.equals("wasteWater")) {
+                    try {
+                        List<Boiler> boilerList = getBoilers();
+                        Boiler bazaBoiler = boilerList.get(3);
+                        if (bazaBoiler.isOk() != 1){
+                            soundPlayer.playSound();
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                if (mode.equals("gasEngineStation")) {
+                    gasEngineStation = null;
+                    System.gc();
+                    String currentDir = Paths.get("").toAbsolutePath().toString()+"/gasengineparams.txt";
+                    gasEngineStation=GasStationParamsReader.parseTxtFile(currentDir);
+                    gasEngineStation.setNormalRoomTemp("15");
+                    gasEngineStation.setNormalRadiatorTemp(fieldTempRadiatorGasStation.getText());
+                    gasEngineStation.setNormalEngineTemp(fieldTempEngineGasStation.getText());
+                    gasEngineStation.setNormalGeneratorTemp(fieldTempGeneratorGasStation.getText());
+                    sendGasEngineParams(gasEngineStation);
+                }
                 if (mode.equals("boilers")){
-
                     actualParamsForRest = null;
                     System.gc();
-                    if (boilers.size()<1){
+                    if (boilers.size() < 1){
                         boilers.clear();
                         for (int i = 0; i < 14; i++) {
                             boilers.add(new Boiler());
@@ -613,6 +658,22 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             e.printStackTrace();
         }
     }
+    public List<Boiler> getBoilers() throws IOException {
+        Request request = new Request.Builder()
+                .url("http://95.142.45.133:23873/getparams")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Unexpected code " + response);
+            }
+
+            // Десериализация JSON в список объектов Boiler
+            Type listType = new TypeToken<List<Boiler>>() {}.getType();
+            List<Boiler> boilers5 = gson.fromJson(response.body().string(), listType);
+            return boilers5;
+        }
+    }
     private void sendPumpStationParams(PumpStation pumpStation) {
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
         String json = gson.toJson(pumpStation);
@@ -639,6 +700,21 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
             System.out.println(response.body().string() + " " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void sendGasEngineParams(GasEngineStation gasEngineStation) {
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+        String json = gson.toJson(gasEngineStation);
+        RequestBody body = RequestBody.create(JSON, json);
+        Request request = new Request.Builder()
+                .url("http://95.142.45.133:23873/setGasEngineStationParams")
+                .post(body)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            System.out.println(response.body().string());
         } catch (IOException e) {
             e.printStackTrace();
         }

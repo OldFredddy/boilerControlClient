@@ -6,7 +6,7 @@
 
     <groupId>org.csbk</groupId>
     <artifactId>BoilerControlClient</artifactId>
-    <version>3.2</version>
+    <version>3.3</version>
 
     <properties>
         <maven.compiler.source>19</maven.compiler.source>
