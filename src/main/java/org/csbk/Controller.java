@@ -306,6 +306,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             pickModeVOS.setToggleGroup(pickedModeToggle);
             pickModeGES.setToggleGroup(pickedModeToggle);
             pickedModeToggle.selectToggle(pickModeBoilers);
+            mode = "boilers";
             pickedModeToggle.selectedToggleProperty().addListener((observable, oldVal, newVal) -> {
                 if (newVal != null) {
                     RadioButton selectedRadioButton = (RadioButton) newVal;
@@ -360,28 +361,25 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                 data.setPpodLow(fixedPpodLow);
                 DataIO.saveData(data);
                 temperatureCorrections.setTAlarmCorrectionFromUsers(data.getCorrectForScada());
-                restartRefreshData(mode);
-                get("/getgudimparams", (request, response) -> {
-                    response.type("application/json");
-                    return new Gson().toJsonTree(gudimParams);
-                });
-                get("/getpumpstationparams", (request, response) -> {
-                    response.type("application/json");
-                    return new Gson().toJsonTree(pumpStation);
-                });
+                   restartRefreshData(mode);
+                   get("/getgudimparams", (request, response) -> {
+                           response.type("application/json");
+                           return new Gson().toJsonTree(gudimParams);
+                       });
+                   get("/getpumpstationparams", (request, response) -> {
+                           response.type("application/json");
+                           return new Gson().toJsonTree(pumpStation);
+                       });
                 get("/getclientparams", (request, response) -> {
                     response.type("application/json");
                     return new Gson().toJsonTree(boilers);
                 });
-                get("/getclientparams", (request, response) -> {
-                    response.type("application/json");
-                    return new Gson().toJsonTree(boilers);
-                });
+
                 get("/getcorrect", (request, response) -> {
                     response.type("application/json");
                     return new Gson().toJsonTree(temperatureCorrections);
                 });
-                post("/setclientparamstPod", (request, response) -> {
+                     post("/setclientparamstPod", (request, response) -> {
                     try {
                         String requestBody = request.body();
                         Gson gson = new Gson();
@@ -397,9 +395,10 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                         return new Gson().toJson("Invalid JSON format");
                     }
                 });
-                post("/setclientparamstAlarm", (request, response) -> {
+                    post("/setclientparamstAlarm", (request, response) -> {
                     try {
                         String requestBody = request.body();
+                        System.out.println("Received request body: " + requestBody);
                         Gson gson = new Gson();
                         String[] tempCorrectFromUsers = gson.fromJson(requestBody, String[].class);
                         for (int i = 0;i <tempCorrectFromUsers.length;i++){
@@ -513,7 +512,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                     try {
                         List<Boiler> boilerList = getBoilers();
                         Boiler bazaBoiler = boilerList.get(3);
-                        if (bazaBoiler.isOk() != 1){
+                        if (bazaBoiler.getIsOk() != 1){
                             soundPlayer.playSound();
                         }
                     } catch (IOException e) {
@@ -552,7 +551,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                                 boilers.get(i).settUlica(actualParamsForRest.getTStreet()[i]);
                                 boilers.get(i).settPlan(actualParamsForRest.gettPlan()[i]);
                                 boilers.get(i).settAlarm(actualParamsForRest.getAlarm(fixedTpod, temperatureCorrections.getCorrectionTpod(), i, correctFromUsers1));
-                                boilers.get(i).setOk(0);
+                                boilers.get(i).setIsOk(0);
                                 boilers.get(i).setImageResId(i);
                                 boilers.get(i).setpPodHighFixed(String.valueOf(fixedPpodHigh[i]));
                                 boilers.get(i).setpPodLowFixed(String.valueOf(fixedPpodLow[i]));
@@ -560,6 +559,8 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
                                 boilers.get(i).setVersion(1);
                             }
                         }
+                        sendBoilersParams(boilers);
+                        getPumpsParams();
                     } catch (IOException | NullPointerException | NumberFormatException e) {
                         e.printStackTrace();
                     }
@@ -567,7 +568,7 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
             }
         };
-        timerRefreshDataForRest.scheduleAtFixedRate(refreshDataTask, 3  * 1000, 2  * 1000);
+        timerRefreshDataForRest.scheduleAtFixedRate(refreshDataTask, 3  * 1000, 3  * 1000);
     }
     private void restartRefreshData(String mode){
         timerRestart = new Timer();
@@ -580,7 +581,13 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
               startTimerRefreshDataForRest(mode);
             }
         };
-        timerRestart.scheduleAtFixedRate(restartRefreshDataTask,   1000, 5 * 60 * 1000);
+        if (timerRestart != null) {
+            try {
+                timerRestart.scheduleAtFixedRate(restartRefreshDataTask, 1000, 5 * 60 * 1000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
     private void initializeConfigFile(){
         //   ModbusServer modbusServer = new ModbusServer("192.168.6.190", 502, 1, 50,
@@ -672,6 +679,53 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             Type listType = new TypeToken<List<Boiler>>() {}.getType();
             List<Boiler> boilers5 = gson.fromJson(response.body().string(), listType);
             return boilers5;
+        }
+    }
+    private void sendBoilersParams(List<Boiler> boilers) {
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+        Gson gson = new Gson();
+        if (boilers == null || boilers.isEmpty()) {
+            System.out.println("Boilers list is null or empty");
+            return;
+        }
+      // for (Boiler boiler : boilers) {
+      //     System.out.println("Boiler data: " + boiler);
+      // }
+        String json = gson.toJson(boilers);
+
+        RequestBody body = RequestBody.create(JSON, json);
+        Request request = new Request.Builder()
+                .url("http://95.142.45.133:23873/setBoilersParams")
+                .post(body)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            System.out.println(response.body().string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+       // System.out.println("JSON being sent: " + json);
+
+      //  System.out.println("Boilers params send");
+    }
+
+    public void getPumpsParams() {
+        Request request = new Request.Builder()
+                .url("http://95.142.45.133:23873/getPumpsInfo")
+                .get()
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            String responseBody = response.body().string();
+            Gson gson = new Gson();
+            String[] pumpsInfo = gson.fromJson(responseBody, String[].class);
+            PumpInfo pumpInfo = new PumpInfo();
+            pumpInfo.setCorrectionPumps(pumpsInfo);
+            pumpInfo.correctPumps();
+            System.out.println("Запрос pumpInfo:");
+            System.out.println(Arrays.toString(pumpInfo.getCorrectionPumps()));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
     private void sendPumpStationParams(PumpStation pumpStation) {

@@ -1,10 +1,7 @@
 package org.csbk;
 
-
-
-
 public class Boiler {
-    private int isOk;  //0-waiting 1 - good 2 - error
+    private int isOk;  // 0 - waiting, 1 - good, 2 - error
     private String tPod;
     private String pPod;
     private String tUlica;
@@ -23,23 +20,6 @@ public class Boiler {
 
     public void setIsOk(int isOk) {
         this.isOk = isOk;
-    }
-
-    public long getVersion() {
-        return version;
-    }
-
-    public void setVersion(long version) {
-        this.version = version;
-    }
-
-
-    public int isOk() {
-        return isOk;
-    }
-
-    public void setOk(int ok) {
-        isOk = ok;
     }
 
     public String gettPod() {
@@ -122,5 +102,11 @@ public class Boiler {
         this.id = id;
     }
 
+    public long getVersion() {
+        return version;
+    }
 
+    public void setVersion(long version) {
+        this.version = version;
+    }
 }
