@@ -2,6 +2,7 @@ package org.csbk;
 
 import java.io.*;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class PumpInfo {
     private static String currentDir1 = Paths.get("").toAbsolutePath().toString();
@@ -39,15 +40,33 @@ public class PumpInfo {
         try {
             File file = new File(currentDir1, "pump_changer.txt");
             if (!file.exists()) {
-                file.createNewFile();
-            }
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
-                for (String number : numbers) {
-                    bw.write(number + "\n");
+                // Файл не существует, записываем данные
+                writeDataToFile(file, numbers);
+            } else {
+                // Читаем существующие данные из файла
+                String[] existingNumbers;
+                try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                    existingNumbers = br.lines().toArray(String[]::new);
+                }
+                // Сравниваем существующие данные с новыми
+                if (!Arrays.equals(existingNumbers, numbers)) {
+                    // Данные изменились, перезаписываем файл
+                    writeDataToFile(file, numbers);
+                } else {
+                    // Данные совпадают, ничего не делаем
+                    System.out.println("Данные не изменились, файл не перезаписан.");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void writeDataToFile(File file, String[] numbers) throws IOException {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, false))) {
+            for (String number : numbers) {
+                bw.write(number + "\n");
+            }
         }
     }
 
