@@ -456,7 +456,9 @@ public int[] correctFromUsers1={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
       //      fixedParamsGudim[11]=Integer.parseInt(fieldTpodSk2GLow.getText());
 //
       //  });
-        //startButton.fire();
+       // mode = "gasEngineStation";
+        mode = "boilers";
+        startButton.fire();
     }
     public void setTextField(String s){
         fieldTpod13.setText(s);
